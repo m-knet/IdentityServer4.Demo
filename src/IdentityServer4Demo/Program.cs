@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
@@ -18,6 +19,10 @@ namespace IdentityServer4Demo
         public static IHostBuilder BuildWebHostBuilder(string[] args)
         {
             return Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(c =>
+                {
+                    c.AddJsonFile("Seed.json", true, true);
+                })
                 .UseSerilog((ctx, config) =>
                 {
                     config.MinimumLevel.Debug()

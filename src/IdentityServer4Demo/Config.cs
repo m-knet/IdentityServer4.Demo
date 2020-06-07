@@ -26,7 +26,7 @@ namespace IdentityServer4Demo
 
                 // PolicyServer demo
                 new ApiResource("policyserver.runtime"),
-                new ApiResource("policyserver.management")
+                new ApiResource("policyserver.management"),
             };
         }
 

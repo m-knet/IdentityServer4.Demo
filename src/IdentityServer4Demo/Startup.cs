@@ -2,11 +2,13 @@
 using IdentityServer4.Quickstart.UI;
 using IdentityServer4.Services;
 using IdentityServer4.Validation;
+using IdentityServer4Demo.Seed;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Linq;
 
 namespace IdentityServer4Demo
 {
@@ -22,21 +24,32 @@ namespace IdentityServer4Demo
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            
+
             // cookie policy to deal with temporary browser incompatibilities
             services.AddSameSiteCookiePolicy();
 
-            services.AddIdentityServer(options =>
+            var identityServerBuilder = services.AddIdentityServer(options =>
             {
                 options.Events.RaiseErrorEvents = true;
                 options.Events.RaiseFailureEvents = true;
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseSuccessEvents = true;
-            })
-                .AddInMemoryApiResources(Config.GetApis())
-                .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                .AddInMemoryClients(Config.GetClients())
-                .AddTestUsers(TestUsers.Users)
+            });
+
+            var seed = Configuration.Get<SeedOptions>();
+            identityServerBuilder
+                .AddInMemoryApiResources(seed?.ApiResources == null
+                    ? Config.GetApis()
+                    : seed.ApiResources.Select(ar => ar.ToModel()))
+                .AddInMemoryIdentityResources(seed?.IdentityResources == null
+                    ? Config.GetIdentityResources()
+                    : seed.IdentityResources.Select(ir => ir.ToModel()))
+                .AddInMemoryClients(seed?.Clients == null
+                    ? Config.GetClients()
+                    : seed.Clients.Select(c => c.ToModel()))
+                .AddTestUsers(seed?.Users == null
+                    ? TestUsers.Users
+                    : seed.Users.Select(u => u.ToModel()).ToList())
                 .AddDeveloperSigningCredential(persistKey: false);
 
             services.AddAuthentication();
